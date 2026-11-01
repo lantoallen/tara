@@ -158,6 +158,13 @@ body {
   display: none;
 }
 
+/* A loading placeholder is shorter than the page it stands in for, so the
+   footer would show up mid-screen and then get shoved down when the page
+   arrives. It stays out until the placeholder is gone. */
+:root:has([data-loading]) .site-footer {
+  display: none;
+}
+
 /* Cards that open something rise a little under the pointer. */
 @utility lift {
   transition: translate 160ms ease, box-shadow 160ms ease, border-color 160ms ease;

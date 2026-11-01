@@ -15,7 +15,7 @@ export default function TicketsPage() {
   return (
     <>
       <PageBand title="My tickets" />
-      <Suspense fallback={<div className="card mt-6 h-48 animate-pulse" />}>
+      <Suspense fallback={<div data-loading className="card mt-6 h-48 animate-pulse" />}>
         <TicketList />
       </Suspense>
     </>

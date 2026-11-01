@@ -34,7 +34,13 @@ export async function generateMetadata({ params }: PageProps<"/events/[slug]">):
 
 export default function EventPage({ params }: PageProps<"/events/[slug]">) {
   return (
-    <Suspense fallback={<FullBleed className="photo photo-band -mt-8 h-70" />}>
+    <Suspense
+      fallback={
+        <div data-loading>
+          <FullBleed className="photo photo-band -mt-8 h-70 md:h-78" />
+        </div>
+      }
+    >
       <EventDetail params={params} />
     </Suspense>
   );

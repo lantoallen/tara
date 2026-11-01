@@ -14,7 +14,7 @@ export default function NewEventPage() {
         ← Your events
       </Link>
       <h1 className="mt-2 mb-6 text-2xl font-semibold tracking-tight">New event</h1>
-      <Suspense fallback={<div className="card h-[640px] animate-pulse" />}>
+      <Suspense fallback={<div data-loading className="card h-[640px] animate-pulse" />}>
         <SignedInForm />
       </Suspense>
     </div>

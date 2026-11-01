@@ -14,7 +14,13 @@ export const metadata: Metadata = { title: "Manage event" };
 
 export default function ManageEventPage({ params }: PageProps<"/organize/[id]">) {
   return (
-    <Suspense fallback={<FullBleed className="photo photo-band -mt-8 h-70" />}>
+    <Suspense
+      fallback={
+        <div data-loading>
+          <FullBleed className="photo photo-band -mt-8 h-70" />
+        </div>
+      }
+    >
       <Dashboard params={params} />
     </Suspense>
   );
