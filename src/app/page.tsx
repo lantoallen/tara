@@ -24,7 +24,7 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
             <h1 className="text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl">
               What&apos;s on around Batangas
             </h1>
-            <Suspense fallback={<p className="mt-4 h-14 max-w-md text-lg text-hero-muted" />}>
+            <Suspense fallback={<HeroText total={10} hidden />}>
               <HeroCount />
             </Suspense>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -36,7 +36,7 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
               </Link>
             </div>
           </div>
-          <Suspense fallback={<div className="mx-auto h-[420px] w-full max-w-sm" />}>
+          <Suspense fallback={<div className="mx-auto h-97 w-full max-w-sm" />}>
             <NextUpTickets />
           </Suspense>
         </Column>
@@ -102,8 +102,14 @@ async function OldBrowseLinks({ searchParams }: { searchParams: PageProps<"/">["
 async function HeroCount() {
   const client = await serverApi();
   const { total } = await load(client.api.events.overview.$get());
+  return <HeroText total={total} />;
+}
+
+// While the count loads, the same sentence sits there invisibly. It wraps onto
+// as many lines as the real one, so the buttons under it don't jump.
+function HeroText({ total, hidden = false }: { total: number; hidden?: boolean }) {
   return (
-    <p className="mt-4 max-w-md text-lg leading-relaxed text-hero-muted">
+    <p className={`mt-4 max-w-md text-lg leading-relaxed text-hero-muted ${hidden ? "invisible" : ""}`}>
       {total === 0
         ? "Nothing's posted yet. Be the first to put something on."
         : `${total} ${total === 1 ? "event" : "events"} in the next 30 days, from trail runs to coding workshops. Register in a click and show a QR code at the door.`}

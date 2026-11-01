@@ -52,7 +52,7 @@ export default function BrowsePage({ searchParams }: PageProps<"/events">) {
           <Suspense fallback={<div className="mt-5 h-[96px] sm:h-11" />}>
             <BrowseSearch />
           </Suspense>
-          <Suspense fallback={<div className="mt-6 h-[74px]" />}>
+          <Suspense fallback={<div className="mt-6 h-[67px]" />}>
             <DayPicker searchParams={searchParams} />
           </Suspense>
         </Column>
@@ -60,7 +60,7 @@ export default function BrowsePage({ searchParams }: PageProps<"/events">) {
 
       {/* Categories in a column on the left; on phones they become a row that scrolls sideways. */}
       <div className="mt-6 grid grid-cols-1 gap-6 md:mt-8 md:grid-cols-[180px_minmax(0,1fr)] md:gap-10">
-        <Suspense fallback={<div className="h-10 md:h-80" />}>
+        <Suspense fallback={<div className="h-9 md:h-80" />}>
           <CategoryNav searchParams={searchParams} />
         </Suspense>
         <div className="min-w-0">
@@ -317,7 +317,7 @@ function groupByDay<T extends { startsAt: string }>(events: T[]) {
 
 function AgendaSkeleton() {
   return (
-    <div className="space-y-8" aria-hidden="true">
+    <div data-loading className="space-y-8" aria-hidden="true">
       {[0, 1].map((i) => (
         <div key={i}>
           <div className="mb-3 h-5 w-40 rounded bg-surface-2" />
