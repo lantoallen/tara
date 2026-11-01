@@ -7,10 +7,17 @@ import { api, errorMessage, unwrap } from "@/lib/api";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 
 
-export function AuthForm({ mode, demo }: { mode: "login" | "signup"; demo: boolean }) {
-  const router = useRouter();
+type Props = { mode: "login" | "signup"; demo: boolean };
+
+export function AuthForm(props: Props) {
   // Only ever send people back to a page on this site.
-  const next = safeRedirectPath(useSearchParams().get("next"));
+  return <AuthFields {...props} next={safeRedirectPath(useSearchParams().get("next"))} />;
+}
+
+// The form itself. Pages also show it, without `next`, while the address is
+// being read, so it's on screen from the start instead of popping in.
+export function AuthFields({ mode, demo, next }: Props & { next: string | null }) {
+  const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 

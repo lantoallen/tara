@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { AuthForm } from "@/components/auth-form";
+import { AuthFields, AuthForm } from "@/components/auth-form";
 import { DEMO_MODE } from "@/lib/config";
 
 export const metadata: Metadata = { title: "Sign up" };
@@ -14,7 +14,7 @@ export default function Page() {
           Accounts are wiped when the demo resets each day, so don&apos;t reuse a real password.
         </p>
       )}
-      <Suspense>
+      <Suspense fallback={<AuthFields mode="signup" demo={DEMO_MODE} next={null} />}>
         <AuthForm mode="signup" demo={DEMO_MODE} />
       </Suspense>
     </div>
