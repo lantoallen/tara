@@ -2,26 +2,21 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { Suspense, useState, useTransition } from "react";
 import { api, errorMessage, unwrap } from "@/lib/api";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 
-
-type Props = { mode: "login" | "signup"; demo: boolean };
-
-export function AuthForm(props: Props) {
-  // Only ever send people back to a page on this site.
-  return <AuthFields {...props} next={safeRedirectPath(useSearchParams().get("next"))} />;
-}
-
-// The form itself. Pages also show it, without `next`, while the address is
-// being read, so it's on screen from the start instead of popping in.
-export function AuthFields({ mode, demo, next }: Props & { next: string | null }) {
+// Only the link to the other form reads `?next=` while rendering. If the whole
+// form did, it would have to wait for the address, and showing a stand-in
+// until then swapped out whatever had been typed into it.
+export function AuthForm({ mode, demo }: { mode: "login" | "signup"; demo: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   function finish(fallback: string) {
+    // Only ever send people back to a page on this site.
+    const next = safeRedirectPath(new URLSearchParams(window.location.search).get("next"));
     router.push(next ?? fallback);
     router.refresh();
   }
@@ -57,7 +52,7 @@ export function AuthFields({ mode, demo, next }: Props & { next: string | null }
   }
 
   const other = mode === "login" ? "/signup" : "/login";
-  const otherHref = next ? `${other}?next=${encodeURIComponent(next)}` : other;
+  const otherLabel = mode === "login" ? "Create an account" : "Log in";
 
   return (
     <>
@@ -107,9 +102,15 @@ export function AuthFields({ mode, demo, next }: Props & { next: string | null }
       </form>
       <p className="mt-4 text-sm text-muted">
         {mode === "login" ? "New here? " : "Already have an account? "}
-        <Link href={otherHref} className="link">
-          {mode === "login" ? "Create an account" : "Log in"}
-        </Link>
+        <Suspense
+          fallback={
+            <Link href={other} className="link">
+              {otherLabel}
+            </Link>
+          }
+        >
+          <KeepNextLink href={other}>{otherLabel}</KeepNextLink>
+        </Suspense>
       </p>
 
       {demo && (
@@ -130,5 +131,15 @@ export function AuthFields({ mode, demo, next }: Props & { next: string | null }
       </div>
       )}
     </>
+  );
+}
+
+// A link that carries `?next=` along, so people still end up where they were headed.
+function KeepNextLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const next = safeRedirectPath(useSearchParams().get("next"));
+  return (
+    <Link href={next ? `${href}?next=${encodeURIComponent(next)}` : href} className="link">
+      {children}
+    </Link>
   );
 }
