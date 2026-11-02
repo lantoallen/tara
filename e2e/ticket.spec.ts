@@ -54,7 +54,7 @@ test.describe.serial("a ticket from sign-up to the door", () => {
     await expect(ticket.getByText(person.name, { exact: true })).toBeVisible();
   });
 
-  test("the ticket still opens with no signal", async ({ page, context }) => {
+  test("the ticket opens with no signal until they log out", async ({ page, context }) => {
     await logIn(page, email, "/tickets");
     await expect(page.getByText("Saved on this device, so this ticket opens with no signal.")).toBeVisible();
 
@@ -69,6 +69,15 @@ test.describe.serial("a ticket from sign-up to the door", () => {
     await expect(page).toHaveURL("/tickets");
     await page.getByRole("link", { name: event.title }).click();
     await expect(page).toHaveURL(`/tickets/${code}`);
+    await context.setOffline(false);
+
+    // Logging out leaves nothing saved, even straight after opening My tickets
+    // while it may still be saving.
+    await page.goto("/tickets");
+    await page.getByRole("button", { name: "Log out" }).click();
+    await expect(page).toHaveURL("/");
+    await context.setOffline(true);
+    await expect(page.goto(`/tickets/${code}`)).rejects.toThrow();
     await context.setOffline(false);
   });
 

@@ -22,22 +22,36 @@ export async function saveForOffline(paths: string[], { only = false } = {}): Pr
     // asking before the layout has registered it on the first visit.
     await navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" });
     const { active } = await navigator.serviceWorker.ready;
-    if (!active) return 0;
-    return await new Promise<number>((resolve) => {
-      const channel = new MessageChannel();
-      channel.port1.onmessage = (event) => resolve(event.data.saved);
-      active.postMessage({ type: "save", paths, only }, [channel.port2]);
-    });
+    const reply = active && (await ask(active, { type: "save", paths, only }, 60_000));
+    return reply?.saved ?? 0;
   } catch {
     return 0;
   }
 }
 
 // Deletes every saved ticket, for when someone logs out or a different person
-// signs in on this device.
+// signs in on this device. It goes through the service worker so a save that's
+// still running can't put them back, then clears what's here too in case there
+// isn't one.
 export async function forgetSavedTickets() {
   if (!("caches" in window)) return;
+  const registration = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
+  if (registration?.active) await ask(registration.active, { type: "forget" }, 2000);
   for (const name of await caches.keys()) {
     if (name.startsWith("tara-")) await caches.delete(name);
   }
+}
+
+// Sends the service worker a message and waits for its answer, giving up after
+// `wait` ms so logging out never hangs on it.
+function ask(worker: ServiceWorker, message: object, wait: number): Promise<{ saved?: number } | null> {
+  return new Promise((resolve) => {
+    const channel = new MessageChannel();
+    const timer = setTimeout(() => resolve(null), wait);
+    channel.port1.onmessage = (event) => {
+      clearTimeout(timer);
+      resolve(event.data);
+    };
+    worker.postMessage(message, [channel.port2]);
+  });
 }

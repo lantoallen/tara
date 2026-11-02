@@ -14,6 +14,11 @@ const WAIT_FOR_NETWORK_MS = 4000;
 // visit gets a page without it, and that isn't worth saving.
 const MARKER = "data-keep-offline";
 
+// Goes up each time saved tickets are cleared. A save checks it before writing,
+// so one that was still running when someone logged out can't put their
+// tickets back afterwards.
+let timesCleared = 0;
+
 const isTicketPage = (path) => path === "/tickets" || /^\/tickets\/[A-Za-z0-9]+$/.test(path);
 
 // The styles, fonts, and header photo a saved page needs to look right. The
@@ -48,12 +53,21 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-// Pages ask for tickets to be saved: the ticket page for itself, and My
-// tickets for every upcoming one (`only` drops the rest).
+// Pages ask for tickets to be saved (the ticket page for itself, and My
+// tickets for every upcoming one, where `only` drops the rest) and for them to
+// be cleared when someone logs out.
 self.addEventListener("message", (event) => {
-  if (event.data?.type !== "save") return;
-  const reply = (saved) => event.ports[0]?.postMessage({ saved });
-  event.waitUntil(saveTickets(event.data.paths, event.data.only).then(reply, () => reply(0)));
+  const reply = (data) => event.ports[0]?.postMessage(data);
+  if (event.data?.type === "save") {
+    event.waitUntil(
+      saveTickets(event.data.paths, event.data.only).then(
+        (saved) => reply({ saved }),
+        () => reply({ saved: 0 }),
+      ),
+    );
+  } else if (event.data?.type === "forget") {
+    event.waitUntil(forgetAll().finally(() => reply({})));
+  }
 });
 
 async function fromNetwork(event) {
@@ -63,8 +77,9 @@ async function fromNetwork(event) {
 // The network first, so the ticket is up to date, then the saved copy if
 // there's no connection or it's taking too long.
 async function ticketPage(event, path) {
+  const started = timesCleared;
   const network = fromNetwork(event);
-  event.waitUntil(network.then((res) => keepOrForget(path, res.clone())).catch(() => {}));
+  event.waitUntil(network.then((res) => keepOrForget(path, res.clone(), started)).catch(() => {}));
   const saved = await caches.match(path, { cacheName: PAGES });
   if (!saved) return network;
   const tooSlow = new Promise((_, fail) => setTimeout(fail, WAIT_FOR_NETWORK_MS));
@@ -107,38 +122,42 @@ async function offlineCopy(saved) {
 
 // Saves a ticket page that came back with tickets on it. One that came back
 // signed out means this device shouldn't keep anyone's tickets any more.
-async function keepOrForget(path, res) {
+async function keepOrForget(path, res, started) {
   if (!res.ok) return false;
   const html = await res.text();
   if (html.includes(MARKER)) {
-    await saveFiles(html);
+    await saveFiles(html, started);
+    const pages = await caches.open(PAGES);
+    if (started !== timesCleared) return false;
     const page = new Response(html, {
       headers: { "content-type": "text/html; charset=utf-8", "x-saved-at": new Date().toISOString() },
     });
-    await (await caches.open(PAGES)).put(path, page);
+    await pages.put(path, page);
     return true;
   }
   if (html.includes("/login?next=")) await forgetAll();
   return false;
 }
 
-async function saveFiles(text) {
+async function saveFiles(text, started) {
   const files = await caches.open(FILES);
   for (const file of filesIn(text)) {
     if (await files.match(file)) continue;
     const res = await fetch(file).catch(() => null);
+    if (started !== timesCleared) return;
     if (res?.ok) await files.put(file, res);
   }
 }
 
 async function saveTickets(paths, only) {
+  const started = timesCleared;
   let saved = 0;
   for (const path of paths) {
     if (!isTicketPage(path)) continue;
     const res = await fetch(path).catch(() => null);
-    if (res && (await keepOrForget(path, res))) saved++;
+    if (res && (await keepOrForget(path, res, started))) saved++;
   }
-  if (only) await dropAllBut(paths);
+  if (only && started === timesCleared) await dropAllBut(paths);
   return saved;
 }
 
@@ -161,6 +180,7 @@ async function dropAllBut(paths) {
 }
 
 async function forgetAll() {
+  timesCleared++;
   await caches.delete(PAGES);
   await caches.delete(FILES);
 }
