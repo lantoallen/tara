@@ -58,7 +58,11 @@ export async function openPglite(dataDir?: string, { snapshot }: { snapshot?: Bl
   };
 }
 
-export const localDataDir = path.join(process.cwd(), ".data", "pglite");
+// The browser tests point PGLITE_DIR at a folder of their own, so they never
+// touch the database `npm run dev` uses.
+export const localDataDir = process.env.PGLITE_DIR
+  ? path.resolve(process.env.PGLITE_DIR)
+  : path.join(process.cwd(), ".data", "pglite");
 
 // Deployed without DATABASE_URL, the app keeps an in-memory database per
 // server instance and loads the sample data when it starts. Fine for a demo,
