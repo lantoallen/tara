@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Check-in" };
 export default function CheckInPage({ params }: PageProps<"/organize/[id]/check-in">) {
   return (
     <div className="mx-auto max-w-xl">
-      <Suspense fallback={<div className="card mt-10 h-[560px] animate-pulse" />}>
+      <Suspense fallback={<div data-loading className="card h-[560px] animate-pulse" />}>
         <Desk params={params} />
       </Suspense>
     </div>

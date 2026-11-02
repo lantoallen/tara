@@ -18,7 +18,7 @@ export default function TicketPage({ params }: PageProps<"/tickets/[code]">) {
       <Link href="/tickets" className="text-sm text-muted hover:text-ink">
         ← My tickets
       </Link>
-      <Suspense fallback={<div className="card mt-4 h-[520px] animate-pulse" />}>
+      <Suspense fallback={<div data-loading className="card mt-4 h-[520px] animate-pulse" />}>
         <Ticket params={params} />
       </Suspense>
     </div>

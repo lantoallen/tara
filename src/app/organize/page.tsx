@@ -16,7 +16,7 @@ export default function OrganizePage() {
           New event
         </Link>
       </PageBand>
-      <Suspense fallback={<div className="card h-64 animate-pulse" />}>
+      <Suspense fallback={<div data-loading className="card h-64 animate-pulse" />}>
         <EventList />
       </Suspense>
     </>

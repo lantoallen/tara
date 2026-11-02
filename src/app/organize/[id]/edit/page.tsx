@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Edit event" };
 export default function EditEventPage({ params }: PageProps<"/organize/[id]/edit">) {
   return (
     <div className="mx-auto max-w-2xl">
-      <Suspense fallback={<div className="card mt-10 h-[640px] animate-pulse" />}>
+      <Suspense fallback={<div data-loading className="card h-[640px] animate-pulse" />}>
         <Edit params={params} />
       </Suspense>
     </div>

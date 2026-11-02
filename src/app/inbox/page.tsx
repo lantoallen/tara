@@ -16,7 +16,7 @@ export default function InboxPage() {
         A copy of every email we&apos;ve sent you: confirmations, waitlist updates, reminders, and messages from
         organizers.{DEMO_MODE && " On this demo they only land here, not in a real inbox."}
       </p>
-      <Suspense fallback={<div className="card mt-6 h-48 animate-pulse" />}>
+      <Suspense fallback={<div data-loading className="card mt-6 h-48 animate-pulse" />}>
         <Emails />
       </Suspense>
     </>

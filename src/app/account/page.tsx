@@ -12,7 +12,7 @@ export default function AccountPage() {
     <>
       <PageBand title="Account" />
       <div className="mx-auto max-w-xl">
-      <Suspense fallback={<div className="card mt-6 h-96 animate-pulse" />}>
+      <Suspense fallback={<div data-loading className="card mt-6 h-96 animate-pulse" />}>
         <Account />
       </Suspense>
       </div>
