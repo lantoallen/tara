@@ -61,7 +61,7 @@ At the door, the check-in page stamps each ticket: admitted, already in, or no e
 - **Next.js 16** (App Router, React Server Components) and **Tailwind CSS**
 - **Hono** for the API, mounted at `/api` inside Next. The pages call it in process from the server and over HTTP from the browser, through Hono's typed client, so the UI and the API share one set of types
 - **PostgreSQL** with **Drizzle ORM** and SQL migrations. Locally and in tests it runs on **PGlite** (Postgres compiled to WebAssembly), so there's nothing to install
-- **Zod** for request validation, **Vitest** for tests, **GitHub Actions** for CI
+- **Zod** for request validation, **Vitest** for API tests, **Playwright** for browser tests, **GitHub Actions** for CI
 - Auth is written by hand: scrypt password hashes, random session tokens stored as SHA-256 hashes, httpOnly cookies
 
 ```text
@@ -77,6 +77,7 @@ src/
     seed.ts             the sample data
     test/               API tests
 drizzle/                generated SQL migrations
+e2e/                    browser tests
 ```
 
 ## Parts worth a closer look
@@ -90,6 +91,8 @@ drizzle/                generated SQL migrations
 **CSV export that's safe to open.** Names starting with `=`, `+`, `-`, or `@` get a leading apostrophe so spreadsheet apps don't run them as formulas. There's a test with a `=HYPERLINK(...)` name.
 
 **Tests hit the real API.** The tests send HTTP requests to the Hono app backed by a fresh Postgres per test file: auth, rate limiting, CSRF, waitlist promotion, permissions, check-in rules, stats, and the export. Run them with `npm test`.
+
+**Browser tests click through the real thing.** Playwright drives Chrome through a ticket's whole life on a production build, at desktop and phone sizes: someone new signs up from an event page, registers, opens their ticket and its QR code, then the organizer checks it in at the door (a made-up code is turned away, and the same ticket can't get in twice). They caught a bug the API tests couldn't: opening the login page directly and typing straight away lost what you typed. Run them with `npm run test:e2e`.
 
 ## Running it locally
 
@@ -106,6 +109,7 @@ Other commands:
 
 ```bash
 npm test            # API tests
+npm run test:e2e    # build, then browser tests (uses the Chrome you have installed)
 npm run typecheck
 npm run lint
 npm run db:generate # new migration after editing src/server/db/schema.ts
