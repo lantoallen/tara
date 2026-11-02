@@ -54,6 +54,24 @@ test.describe.serial("a ticket from sign-up to the door", () => {
     await expect(ticket.getByText(person.name, { exact: true })).toBeVisible();
   });
 
+  test("the ticket still opens with no signal", async ({ page, context }) => {
+    await logIn(page, email, "/tickets");
+    await expect(page.getByText("Saved on this device, so this ticket opens with no signal.")).toBeVisible();
+
+    await context.setOffline(true);
+    await page.goto(`/tickets/${code}`);
+    await expect(page.getByRole("status")).toContainText("No connection right now");
+    const shown = `${code.slice(0, 5)}-${code.slice(5)}`;
+    await expect(page.getByRole("main").getByRole("img", { name: `QR code for ticket ${shown}` })).toBeVisible();
+
+    // A page that isn't saved sends them to the tickets that are.
+    await page.goto("/events");
+    await expect(page).toHaveURL("/tickets");
+    await page.getByRole("link", { name: event.title }).click();
+    await expect(page).toHaveURL(`/tickets/${code}`);
+    await context.setOffline(false);
+  });
+
   test("the organizer checks the ticket in at the door", async ({ page }) => {
     await page.goto("/login");
     await page.getByRole("button", { name: "Try as an organizer" }).click();

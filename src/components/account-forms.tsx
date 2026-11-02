@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { api, errorMessage, unwrap } from "@/lib/api";
+import { forgetSavedTickets } from "@/lib/offline-tickets";
 
 type User = { id: string; name: string; email: string };
 type Status = { kind: "ok" | "error"; text: string } | null;
@@ -124,6 +125,7 @@ export function AccountForms({ user }: { user: User }) {
             action={(form) =>
               removal.run(async () => {
                 await unwrap(api.api.me.$delete({ json: { password: String(form.get("password") ?? "") } }));
+                await forgetSavedTickets();
                 router.push("/");
                 router.refresh();
               })

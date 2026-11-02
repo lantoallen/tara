@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
+import { RegisterServiceWorker } from "@/components/offline-tickets";
 import { SearchShortcut } from "@/components/search-shortcut";
 import { SiteHeader } from "@/components/site-header";
 import { CurrentTabs, TabLinks } from "@/components/tab-bar";
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="preload" href="/taal-lake.avif" as="image" type="image/avif" fetchPriority="high" />
         <SiteHeader />
         <SearchShortcut />
+        <RegisterServiceWorker />
         <main id="content" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-16 sm:px-6">
           {children}
         </main>

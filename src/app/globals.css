@@ -158,6 +158,29 @@ body {
   display: none;
 }
 
+/* public/sw.js adds this to a saved ticket it shows when there's no
+   connection. It floats above the phone tab bar. */
+.offline-note {
+  position: fixed;
+  inset-inline: 0.75rem;
+  bottom: calc(4.25rem + env(safe-area-inset-bottom));
+  z-index: 40;
+  max-width: 28rem;
+  margin-inline: auto;
+  border-radius: 0.5rem;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 0.625rem 0.875rem;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+}
+@media (min-width: 40rem) {
+  .offline-note {
+    bottom: 1rem;
+  }
+}
+
 /* A loading placeholder is shorter than the page it stands in for, so the
    footer would show up mid-screen and then get shoved down when the page
    arrives. It stays out until the placeholder is gone. */

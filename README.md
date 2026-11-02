@@ -41,6 +41,7 @@ At the door, the check-in page stamps each ticket: admitted, already in, or no e
 - On phones, the main links sit in a tab bar along the bottom of the screen
 - Register in one click. When an event is full you join the waitlist and see your place in line
 - Get a ticket with a QR code. Online events only show the meeting link once you have a confirmed spot
+- Upcoming tickets are saved on your device, so they still open at a venue with no signal
 - Cancel or leave the waitlist. If you give up a spot, the next person in line gets it automatically
 - Add an event to Apple Calendar, Outlook, or Google Calendar, and open the venue in Google Maps
 - An inbox page keeps a copy of every email the app sends you
@@ -92,7 +93,9 @@ e2e/                    browser tests
 
 **Tests hit the real API.** The tests send HTTP requests to the Hono app backed by a fresh Postgres per test file: auth, rate limiting, CSRF, waitlist promotion, permissions, check-in rules, stats, and the export. Run them with `npm test`.
 
-**Browser tests click through the real thing.** Playwright drives Chrome through a ticket's whole life on a production build, at desktop and phone sizes: someone new signs up from an event page, registers, opens their ticket and its QR code, then the organizer checks it in at the door (a made-up code is turned away, and the same ticket can't get in twice). They caught a bug the API tests couldn't: opening the login page directly and typing straight away lost what you typed. Run them with `npm run test:e2e`.
+**Tickets that open with no signal.** A small service worker (`public/sw.js`, written by hand) saves ticket pages on the device when you open them, and My tickets saves every upcoming one. Ticket pages still come from the network first, so they stay current, but if there's no connection, or the network hasn't answered in 4 seconds (a weak signal at a crowded venue), the saved copy shows instead with a note saying so. The saved copy is shown without its scripts, since a ticket doesn't need them and a half-loaded app could break the page. Logging out, deleting your account, or someone else signing in on the device clears everything saved.
+
+**Browser tests click through the real thing.** Playwright drives Chrome through a ticket's whole life on a production build, at desktop and phone sizes: someone new signs up from an event page, registers, opens their ticket and its QR code, opens it again with the network switched off, then the organizer checks it in at the door (a made-up code is turned away, and the same ticket can't get in twice). They caught a bug the API tests couldn't: opening the login page directly and typing straight away lost what you typed. Run them with `npm run test:e2e`.
 
 ## Running it locally
 
