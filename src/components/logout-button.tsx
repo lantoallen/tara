@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { api } from "@/lib/api";
+import { forgetSavedTickets } from "@/lib/offline-tickets";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export function LogoutButton() {
       onClick={() =>
         start(async () => {
           await api.api.auth.logout.$post();
+          await forgetSavedTickets();
           router.push("/");
           router.refresh();
         })

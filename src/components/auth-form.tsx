@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, useTransition } from "react";
 import { api, errorMessage, unwrap } from "@/lib/api";
+import { forgetSavedTickets } from "@/lib/offline-tickets";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 
 // Only the link to the other form reads `?next=` while rendering. If the whole
@@ -14,7 +15,9 @@ export function AuthForm({ mode, demo }: { mode: "login" | "signup"; demo: boole
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function finish(fallback: string) {
+  async function finish(fallback: string) {
+    // Tickets saved for whoever used this device before aren't theirs.
+    await forgetSavedTickets();
     // Only ever send people back to a page on this site.
     const next = safeRedirectPath(new URLSearchParams(window.location.search).get("next"));
     router.push(next ?? fallback);
@@ -32,7 +35,7 @@ export function AuthForm({ mode, demo }: { mode: "login" | "signup"; demo: boole
         } else {
           await unwrap(api.api.auth.login.$post({ json: { email, password } }));
         }
-        finish("/events");
+        await finish("/events");
       } catch (err) {
         setError(errorMessage(err));
       }
@@ -44,7 +47,7 @@ export function AuthForm({ mode, demo }: { mode: "login" | "signup"; demo: boole
     start(async () => {
       try {
         await unwrap(api.api.auth.demo.$post({ json: { as } }));
-        finish(as === "organizer" ? "/organize" : "/tickets");
+        await finish(as === "organizer" ? "/organize" : "/tickets");
       } catch (err) {
         setError(errorMessage(err));
       }
