@@ -8,6 +8,7 @@ import { SITE_URL } from "@/lib/config";
 import { load, serverApi } from "@/lib/server-api";
 import { formatFullDate, formatTime, formatTimeRange } from "@/lib/time";
 import { mapsUrl } from "@/lib/maps";
+import { SavedOffline } from "@/components/offline-tickets";
 import { formatTicketCode } from "@/lib/tickets";
 
 export const metadata: Metadata = { title: "Ticket" };
@@ -46,7 +47,7 @@ async function Ticket({ params }: { params: PageProps<"/tickets/[code]">["params
     : null;
 
   return (
-    <div className="card mt-4 overflow-hidden">
+    <div data-keep-offline className="card mt-4 overflow-hidden">
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <Link href={`/events/${event.slug}`} className="text-lg leading-snug font-semibold hover:underline">
@@ -97,6 +98,11 @@ async function Ticket({ params }: { params: PageProps<"/tickets/[code]">["params
               <p className="mt-3 text-sm text-ok">Checked in at {formatTime(ticket.checkedInAt)}</p>
             ) : (
               <p className="mt-3 text-[13px] text-muted">Show this at the door. They can also type the code.</p>
+            )}
+            {!ticket.checkedInAt && new Date(event.endsAt) > new Date() && (
+              <SavedOffline paths={[`/tickets/${ticket.ticketCode}`]} className="mt-1 justify-center">
+                Saved on this device, so it opens with no signal.
+              </SavedOffline>
             )}
             {new Date(event.endsAt) > new Date() && (
               <div className="mt-4 flex flex-wrap justify-center gap-2">

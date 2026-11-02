@@ -8,6 +8,7 @@ import { load, serverApi } from "@/lib/server-api";
 import { formatDay, formatMonth, formatShortDate, formatTime, formatWeekdayDate } from "@/lib/time";
 import { CATEGORY_COLOR } from "@/lib/categories";
 import { PageBand } from "@/components/page-band";
+import { SavedOffline } from "@/components/offline-tickets";
 
 export const metadata: Metadata = { title: "My tickets" };
 
@@ -31,9 +32,14 @@ async function TicketList() {
     .sort((a, b) => a.event.startsAt.localeCompare(b.event.startsAt));
   const past = tickets.filter((t) => !upcoming.includes(t));
 
+  // Upcoming tickets are saved on the device so they open with no signal. Any
+  // saved before that aren't coming up any more get dropped.
+  const saveable = upcoming.filter((t) => t.status === "confirmed").map((t) => `/tickets/${t.ticketCode}`);
+
   if (tickets.length === 0) {
     return (
       <div className="card mt-6 p-8 text-center">
+        <SavedOffline paths={[]} only />
         <p className="font-medium">No tickets yet.</p>
         <p className="mt-1 text-sm text-muted">
           <Link href="/events" className="link">
@@ -46,8 +52,18 @@ async function TicketList() {
   }
 
   return (
-    <div className="mt-6 space-y-8">
-      <TicketGroup title="Coming up" tickets={upcoming} empty="Nothing coming up." />
+    <div data-keep-offline className="mt-6 space-y-8">
+      <TicketGroup
+        title="Coming up"
+        tickets={upcoming}
+        empty="Nothing coming up."
+        footer={
+          <SavedOffline paths={saveable.length > 0 ? ["/tickets", ...saveable] : []} only className="mt-3">
+            {saveable.length > 0 &&
+              `Saved on this device, so ${saveable.length === 1 ? "this ticket opens" : "these tickets open"} with no signal.`}
+          </SavedOffline>
+        }
+      />
       {past.length > 0 && <TicketGroup title="Past and cancelled" tickets={past} />}
     </div>
   );
@@ -55,7 +71,17 @@ async function TicketList() {
 
 type Ticket = InferResponseType<typeof api.api.me.tickets.$get, 200>["tickets"][number];
 
-function TicketGroup({ title, tickets, empty }: { title: string; tickets: Ticket[]; empty?: string }) {
+function TicketGroup({
+  title,
+  tickets,
+  empty,
+  footer,
+}: {
+  title: string;
+  tickets: Ticket[];
+  empty?: string;
+  footer?: React.ReactNode;
+}) {
   return (
     <section>
       <h2 className="mb-3 text-sm font-medium text-muted">{title}</h2>
@@ -70,6 +96,7 @@ function TicketGroup({ title, tickets, empty }: { title: string; tickets: Ticket
           ))}
         </ul>
       )}
+      {footer}
     </section>
   );
 }

@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/**": ["./drizzle/**/*", "./.demo-db/**/*"],
   },
+  // Browsers should check for a new service worker on every visit, or phones
+  // could keep running an old one.
+  async headers() {
+    return [{ source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache" }] }];
+  },
   turbopack: {
     rules: {
       "*.css": {
